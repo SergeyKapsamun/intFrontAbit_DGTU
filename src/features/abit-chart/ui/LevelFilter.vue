@@ -1,0 +1,48 @@
+<template>
+  <v-col cols="12" md="3">
+    <v-select
+      v-model="model"
+      :items="options"
+      item-title="title"
+      item-value="value"
+      label="Уровни"
+      clearable
+      multiple
+      chips
+      variant="outlined"
+      density="comfortable"
+      hide-details
+      :menu-props="{ maxHeight: 260 }"
+    />
+  </v-col>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+
+const props = defineProps({
+  modelValue: {
+    type: Array,
+    default: () => [],
+  },
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const model = computed({
+  get: () => (Array.isArray(props.modelValue) ? props.modelValue : []),
+  set: (value) => emit('update:modelValue', Array.isArray(value) ? value : []),
+})
+
+const options = [
+  { title: 'Бакалавриат', value: 'бакалавриат' },
+  { title: 'Аспирантура', value: 'аспирантура' },
+  { title: 'Асспирантура', value: 'асспирантура' },
+  { title: 'Интернатура', value: 'интернатура' },
+  { title: 'Магистратура', value: 'магистратура' },
+  { title: 'Ординатура', value: 'ординатура' },
+  { title: 'Специалитет', value: 'специалитет' },
+  { title: 'Среднее общее', value: 'среднее общее' },
+  { title: 'Среднее профессиональное', value: 'среднее профессиональное' },
+]
+</script>

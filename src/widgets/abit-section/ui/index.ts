@@ -1,0 +1,8 @@
+export { default as TableAbit } from './TableAbit.vue'
+export { default as TableAchievements } from './TableAchievements.vue'
+export { default as TableDocuments } from './TableDocuments.vue'
+export { default as ChartsTab } from './ChartsTab.vue'
+export { default as TableAbitUser } from './TableAbitUser.vue'
+export { default as TableDiscipline } from './TableDiscipline.vue'
+export { default as TableCrm } from './TableCrm.vue'
+export { default as ScreenTable } from './ScreenTable.vue'
