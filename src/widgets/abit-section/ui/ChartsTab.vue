@@ -50,32 +50,63 @@ const currentFilters = ref<Record<string, unknown>>({
 });
 const showValuesSetting = ref<boolean | string | number | null>(null);
 const loading = ref(false);
+const requestVersion = ref(0);
 const getSelectedDB = computed(() => dbStore.getSelectedDB);
 const getSelectedYear = computed(() => abitStore.getSelectedYear);
 const filteredData = computed(() => allData.value);
 
+function invalidatePendingRequests() {
+  requestVersion.value += 1;
+}
+
+async function runChartRequest(
+  requestFactory: () => Promise<ChartPoint[]>,
+  errorMessage: string,
+) {
+  const currentRequestVersion = ++requestVersion.value;
+  loading.value = true;
+
+  try {
+    const data = await requestFactory();
+    if (currentRequestVersion !== requestVersion.value) {
+      return;
+    }
+    allData.value = Array.isArray(data) ? data : [];
+  } catch (error) {
+    if (currentRequestVersion !== requestVersion.value) {
+      return;
+    }
+    console.error(errorMessage, error);
+  } finally {
+    if (currentRequestVersion === requestVersion.value) {
+      loading.value = false;
+    }
+  }
+}
+
 async function loadData() {
   if (!getSelectedDB.value || !getSelectedYear.value) {
+    invalidatePendingRequests();
     allData.value = [];
+    loading.value = false;
     return;
   }
 
-  loading.value = true;
-  try {
-    allData.value = (await chartApiService.getAllChartData(
+  await runChartRequest(
+    async () =>
+      (await chartApiService.getAllChartData(
       getSelectedDB.value,
       getSelectedYear.value,
-    )) as ChartPoint[];
-  } catch (error) {
-    console.error("Ошибка при загрузке данных графика:", error);
-  } finally {
-    loading.value = false;
-  }
+      )) as ChartPoint[],
+    "Ошибка при загрузке данных графика:",
+  );
 }
 
 async function onFiltersChanged(filters: Record<string, unknown>) {
   if (!getSelectedDB.value || !getSelectedYear.value) {
+    invalidatePendingRequests();
     allData.value = [];
+    loading.value = false;
     return;
   }
 
@@ -83,18 +114,15 @@ async function onFiltersChanged(filters: Record<string, unknown>) {
   showValuesSetting.value = (showValues as boolean | string | number | null) ?? null;
   currentFilters.value = JSON.parse(JSON.stringify(apiFilters || {}));
 
-  loading.value = true;
-  try {
-    allData.value = (await chartApiService.getFilteredChartData(
+  await runChartRequest(
+    async () =>
+      (await chartApiService.getFilteredChartData(
       currentFilters.value,
       getSelectedDB.value,
       getSelectedYear.value,
-    )) as ChartPoint[];
-  } catch (error) {
-    console.error("Ошибка при фильтрации данных графика:", error);
-  } finally {
-    loading.value = false;
-  }
+      )) as ChartPoint[],
+    "Ошибка при фильтрации данных графика:",
+  );
 }
 
 watch([getSelectedDB, getSelectedYear], () => {

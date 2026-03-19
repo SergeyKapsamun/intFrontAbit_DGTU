@@ -50,6 +50,11 @@
 					<DxSearch :enabled="true" />
 				</DxHeaderFilter>
 			</DxColumn>
+			<DxMasterDetail
+				class="relative"
+				:enabled="true"
+				template="master-detail"
+			/>
 			
 			<DxToolbar>
 				<DxItem name="exportButton" />

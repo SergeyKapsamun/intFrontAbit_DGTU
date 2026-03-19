@@ -12,37 +12,41 @@
       variant="outlined"
       density="comfortable"
       hide-details
-      :menu-props="{ maxHeight: 260 }"
+      :menu-props="{ maxHeight: 260, closeOnContentClick: false }"
+      :disabled="disabled"
     />
   </v-col>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from "vue";
 
 const props = defineProps({
   modelValue: {
     type: Array,
     default: () => [],
   },
-})
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(["update:modelValue"]);
 
 const model = computed({
   get: () => (Array.isArray(props.modelValue) ? props.modelValue : []),
-  set: (value) => emit('update:modelValue', Array.isArray(value) ? value : []),
-})
+  set: (value) => emit("update:modelValue", Array.isArray(value) ? value : []),
+});
 
 const options = [
-  { title: 'Бакалавриат', value: 'бакалавриат' },
-  { title: 'Аспирантура', value: 'аспирантура' },
-  { title: 'Асспирантура', value: 'асспирантура' },
-  { title: 'Интернатура', value: 'интернатура' },
-  { title: 'Магистратура', value: 'магистратура' },
-  { title: 'Ординатура', value: 'ординатура' },
-  { title: 'Специалитет', value: 'специалитет' },
-  { title: 'Среднее общее', value: 'среднее общее' },
-  { title: 'Среднее профессиональное', value: 'среднее профессиональное' },
-]
+  { title: "Бакалавриат", value: "бакалавриат" },
+  { title: "Аспирантура", value: "аспирантура" },
+  { title: "Интернатура", value: "интернатура" },
+  { title: "Магистратура", value: "магистратура" },
+  { title: "Ординатура", value: "ординатура" },
+  { title: "Специалитет", value: "специалитет" },
+  { title: "Среднее общее", value: "среднее общее" },
+  { title: "Среднее профессиональное", value: "среднее профессиональное" },
+];
 </script>

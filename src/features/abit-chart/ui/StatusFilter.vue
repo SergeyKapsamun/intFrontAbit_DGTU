@@ -12,7 +12,8 @@
       variant="outlined"
       density="comfortable"
       hide-details
-      :menu-props="{ maxHeight: 260 }"
+      :menu-props="{ maxHeight: 260, closeOnContentClick: false }"
+      :disabled="disabled"
     />
   </v-col>
 </template>
@@ -24,6 +25,10 @@ const props = defineProps({
   modelValue: {
     type: Array,
     default: () => [],
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
   },
 })
 

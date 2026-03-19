@@ -10,32 +10,37 @@
       variant="outlined"
       density="comfortable"
       hide-details
+      :disabled="disabled"
     />
   </v-col>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from "vue";
 
 const props = defineProps({
   modelValue: {
     type: [String, Number, null],
     default: null,
   },
-})
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(["update:modelValue"]);
 
 const model = computed({
   get: () => props.modelValue ?? null,
-  set: (value) => emit('update:modelValue', value ?? null),
-})
+  set: (value) => emit("update:modelValue", value ?? null),
+});
 
 const options = [
-  { title: 'Заявление', value: 'заявление' },
-  { title: 'Заявление (Б)', value: 'заявление (Б)' },
-  { title: 'ФизЛиц', value: 'физлиц' },
-  { title: 'Договора', value: 'договора' },
-  { title: 'Оплата', value: 'оплата' },
-]
+  { title: "Заявление", value: "заявление" },
+  { title: "Заявление (Б)", value: "заявление (Б)" },
+  { title: "ФизЛиц", value: "физлиц" },
+  { title: "Договоры", value: "договоры" },
+  { title: "Оплата", value: "оплата" },
+];
 </script>

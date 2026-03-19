@@ -45,11 +45,6 @@
 					<DxSearch :enabled="true" />
 				</DxHeaderFilter>
 			</DxColumn>
-			<DxMasterDetail
-				class="relative"
-				:enabled="true"
-				template="master-detail"
-			/>
 			<DxToolbar>
 				<DxItem name="exportButton" />
 			</DxToolbar>
@@ -61,31 +56,11 @@
 				:show-info="true"
 				:display-mode="'adaptive'"
 			/>
-			<template #master-detail="{ data }">
-				<div class="master-detail-section">
-					<ApplicationDetails :data="data.data" />
-				</div>
-			</template>
 		</DxDataGrid>
 	</div>
 </template>
 
 <style scoped>
-.master-detail-section {
-	padding: 5px;
-	background-color: #f9f9f9;
-	border-top: 1px solid #e0e0e0;
-}
-
-.detail-content h4 {
-	margin-top: 0;
-	color: #333;
-}
-
-.detail-content p {
-	margin: 8px 0;
-	color: #666;
-}
 </style>
 
 <script setup lang="ts">
@@ -105,7 +80,6 @@ import {
 	DxPager,
 	DxPaging,
 	DxToolbar,
-	DxMasterDetail,
 } from 'devextreme-vue/data-grid'
 
 import CustomStore from 'devextreme/data/custom_store'
@@ -117,7 +91,6 @@ import { BASE_URL, endpoints } from '@/entities/abit/api/config'
 
 import { Workbook } from 'exceljs'
 import { saveAs } from 'file-saver'
-import { ApplicationDetails } from '@/features/application-details'
 import api from '@/shared/api/http'
 import { useAbitStore } from '@/entities/abit/model/abitStore'
 import { useDbStore } from '@/entities/db/model/dbStore'
@@ -336,18 +309,7 @@ async function onExporting(e: any) {
 }
 
 function onRowClick(e: any) {
-	if (e.event.target.closest('.master-detail-section')) {
-		return
-	}
-
 	abitStore.selectAbit(abitStore.getSelectedAbit === e.key ? null : e.key)
-
-	const grid = e.component
-	if (grid.isRowExpanded(e.key)) {
-		grid.collapseRow(e.key)
-	} else {
-		grid.expandRow(e.key)
-	}
 }
 
 watch(
@@ -387,8 +349,3 @@ if (hasApplicantId()) {
 	abitData.value = createCustomStore()
 }
 </script>
-<style>
-.relative {
-	position: relative;
-}
-</style>

@@ -5,6 +5,7 @@
       label="Дата конца"
       clearable
       hide-details
+      :disabled="disabled"
     />
   </v-col>
 </template>
@@ -17,6 +18,10 @@ const props = defineProps({
   modelValue: {
     type: String,
     default: null,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
   },
 })
 

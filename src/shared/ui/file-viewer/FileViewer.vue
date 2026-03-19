@@ -29,6 +29,7 @@
 
 import axios from 'axios'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { getAuthToken, refreshAuthToken } from '@/shared/api/authSession'
 
 const props = defineProps({
 	document: { type: Object },
@@ -178,6 +179,26 @@ function detectMimeType(bytes: Uint8Array) {
 	return { mime: 'application/octet-stream', ext: '.bin' }
 }
 
+function createAuthorizedHeaders(token: string) {
+	return {
+		Accept: 'application/json',
+		Authorization: `Bearer ${token}`,
+	}
+}
+
+function isUnauthorizedError(error: unknown) {
+	return axios.isAxiosError(error) && error.response?.status === 401
+}
+
+async function requestFileContent(url: string, token: string) {
+	const response = await axios.get(url, {
+		responseType: 'json',
+		headers: createAuthorizedHeaders(token),
+	})
+
+	return response?.data ?? null
+}
+
 async function fetchAndRender() {
 	cleanupUrls()
 	loading.value = true
@@ -191,11 +212,29 @@ async function fetchAndRender() {
 			throw new Error('URL файла не передан')
 		}
 
-		const response = await axios.get(resolvedApiUrl.value, {
-			responseType: 'text',
-		})
+		const token = getAuthToken()
+		if (!token) {
+			throw new Error('Токен доступа не найден')
+		}
 
-		const fileContent = response.data.fileContent
+		let response = null
+
+		try {
+			response = await requestFileContent(resolvedApiUrl.value, token)
+		} catch (err) {
+			if (!isUnauthorizedError(err)) {
+				throw err
+			}
+
+			const refreshedToken = await refreshAuthToken()
+			if (!refreshedToken) {
+				throw err
+			}
+
+			response = await requestFileContent(resolvedApiUrl.value, refreshedToken)
+		}
+
+		const fileContent = response?.fileContent
 		if (isValidHexString(fileContent)) {
 			const byteData = hexToBytes(fileContent)
 			const { mime } = detectMimeType(byteData)

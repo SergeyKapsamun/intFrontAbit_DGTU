@@ -110,14 +110,4 @@ export const documentsColumnsConfig: any[] = [
 		allowSorting: true,
 		dataType: 'string',
 	},
-	{
-		dataField: 'guid',
-		caption: 'GUID',
-		width: 120,
-		alignment: 'center',
-		allowFiltering: true,
-		allowHeaderFiltering: true,
-		allowSorting: true,
-		dataType: 'string',
-	},
 ]

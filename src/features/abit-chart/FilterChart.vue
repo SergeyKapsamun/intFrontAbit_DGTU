@@ -5,18 +5,18 @@
       <v-expansion-panel-text>
         <v-form @submit.prevent>
           <v-row>
-            <TypeFilter v-model="localFilters.type" />
-            <DateStartFilter v-model="localFilters.dateStart" />
-            <DateEndFilter v-model="localFilters.dateEnd" />
-            <BranchFilter v-model="localFilters.branch" />
-            <LevelFilter v-model="localFilters.levels" />
-            <StatusFilter v-model="localFilters.status" />
+            <TypeFilter v-model="localFilters.type" :disabled="disabled" />
+            <DateStartFilter v-model="localFilters.dateStart" :disabled="disabled" />
+            <DateEndFilter v-model="localFilters.dateEnd" :disabled="disabled" />
+            <BranchFilter v-model="localFilters.branch" :disabled="disabled" />
+            <LevelFilter v-model="localFilters.levels" :disabled="disabled" />
+            <StatusFilter v-model="localFilters.status" :disabled="disabled" />
             
           </v-row>
 
           <v-row>
             <v-col cols="12" class="filter-actions">
-              <v-btn variant="outlined" @click="resetFilters">Сбросить</v-btn>
+              <v-btn variant="outlined" :disabled="disabled" @click="resetFilters">Сбросить</v-btn>
             </v-col>
           </v-row>
         </v-form>
@@ -34,6 +34,12 @@ import BranchFilter from './ui/BranchFilter/BranchFilter.vue'
 import LevelFilter from './ui/LevelFilter.vue'
 import StatusFilter from './ui/StatusFilter.vue'
 
+defineProps({
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+})
 
 const emit = defineEmits(['filters-changed'])
 
