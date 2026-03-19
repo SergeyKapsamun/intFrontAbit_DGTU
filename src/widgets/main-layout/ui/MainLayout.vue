@@ -38,6 +38,17 @@
             <i class="fas fa-brush" aria-hidden="true"></i>
           </button>
 
+          <button
+            v-if="!isMobileView"
+            type="button"
+            class="header-link-btn"
+            title="Инструкция"
+            @click="openInstruction"
+          >
+            <i class="fas fa-file-pdf" aria-hidden="true"></i>
+            <span>Инструкция</span>
+          </button>
+
           <v-tooltip
             v-if="!isMobileView && authStore.isAuthenticated"
             location="left"
@@ -100,6 +111,12 @@
                   <i class="fas fa-brush user-menu-fa" aria-hidden="true"></i>
                 </template>
                 <v-list-item-title>Внешний вид</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="openInstruction" class="user-menu-item">
+                <template #prepend>
+                  <i class="fas fa-file-pdf user-menu-fa" aria-hidden="true"></i>
+                </template>
+                <v-list-item-title>Инструкция</v-list-item-title>
               </v-list-item>
               <v-divider class="my-1" />
               <v-list-item @click="onLogout" class="user-menu-item logout-item">
@@ -214,6 +231,10 @@ const isFullscreen = ref(false);
 const currentYear = new Date().getFullYear();
 const nextYear = currentYear + 1;
 const appVersion = "1.1.8";
+const instructionUrl = new URL(
+  `${import.meta.env.BASE_URL}upload/instruction.pdf`,
+  window.location.origin,
+).toString();
 
 type UserCardData = {
   id: string | number;
@@ -368,12 +389,22 @@ async function loadUserCardData() {
 
 function goToAbit() {
   mobileUserMenuOpen.value = false;
+  const externalEntryUrl = authApi.getExternalEntryUrl();
+  if (externalEntryUrl) {
+    window.location.assign(externalEntryUrl);
+    return;
+  }
   router.push("/abit").catch(() => {});
 }
 
 function openThemeSelector() {
   mobileUserMenuOpen.value = false;
   themeDialogOpen.value = true;
+}
+
+function openInstruction() {
+  mobileUserMenuOpen.value = false;
+  window.open(instructionUrl, "_blank", "noopener,noreferrer");
 }
 
 function openVersionJournal() {
@@ -399,10 +430,15 @@ async function toggleFullscreen() {
 }
 
 function onLogout() {
+  const externalEntryUrl = authApi.getExternalEntryUrl();
   authStore.logout();
   userCardData.value = null;
   mobileUserMenuOpen.value = false;
   themeDialogOpen.value = false;
+
+  if (externalEntryUrl) {
+    window.location.assign(externalEntryUrl);
+  }
 }
 </script>
 
@@ -525,6 +561,36 @@ function onLogout() {
 
 .topbar-icon-btn {
   flex: 0 0 auto;
+}
+
+.header-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.header-link-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.header-link-btn .fas {
+  font-size: 14px;
+}
+
+.header-link-btn span {
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .desktop-user-name-trigger {

@@ -3,6 +3,7 @@ import { configureAuthSession } from '@/shared/api/authSession'
 
 const ACCESS_TOKEN_KEY = 'authToken'
 const REFRESH_TOKEN_KEY = 'refreshToken'
+const EXTERNAL_ENTRY_URL_KEY = 'externalEntryUrl'
 const LEGACY_TOKEN_KEY = 'abitAuthToken'
 const URL_TOKEN_KEY = 'token'
 const AUTH_API_ROOT = 'https://ddt.donstu.ru'
@@ -53,14 +54,28 @@ function clearRefreshToken() {
   setRefreshToken('')
 }
 
+function getExternalEntryUrl() {
+  return getStorageValue(EXTERNAL_ENTRY_URL_KEY) || ''
+}
+
+function setExternalEntryUrl(url) {
+  setStorageValue(EXTERNAL_ENTRY_URL_KEY, url || '')
+}
+
+function clearExternalEntryUrl() {
+  setExternalEntryUrl('')
+}
+
 function setSession(payload) {
   setToken(payload?.accessToken || '')
   setRefreshToken(payload?.refreshToken || '')
+  setExternalEntryUrl(extractExternalEntryUrlFromToken(payload?.accessToken || ''))
 }
 
 function clearSession() {
   clearToken()
   clearRefreshToken()
+  clearExternalEntryUrl()
   setStorageValue(LEGACY_TOKEN_KEY, '')
 }
 
@@ -125,6 +140,71 @@ function clearUrlToken() {
     window.history.replaceState({}, '', currentUrl.toString())
   } catch {
   }
+}
+
+function isLikelyExternalEntryValue(value) {
+  return typeof value === 'string' && (value.includes('.') || value.includes('/'))
+}
+
+function normalizeExternalEntryUrl(rawValue) {
+  const value = typeof rawValue === 'string' ? rawValue.trim() : ''
+  if (!value || !isLikelyExternalEntryValue(value)) {
+    return ''
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    return value
+  }
+
+  if (value.startsWith('//')) {
+    return `https:${value}`
+  }
+
+  if (value.startsWith('/')) {
+    return value
+  }
+
+  return `https://${value}`
+}
+
+function decodeBase64UrlSegment(segment) {
+  if (!segment || typeof window === 'undefined') {
+    return ''
+  }
+
+  try {
+    const normalized = segment.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = normalized.padEnd(normalized.length + ((4 - normalized.length % 4) % 4), '=')
+    const binary = window.atob(padded)
+    const bytes = Uint8Array.from(binary, char => char.charCodeAt(0))
+
+    if (typeof TextDecoder !== 'undefined') {
+      return new TextDecoder().decode(bytes)
+    }
+
+    return binary
+  } catch {
+    return ''
+  }
+}
+
+function decodeJwtPayload(token) {
+  const payloadSegment = typeof token === 'string' ? token.split('.')[1] || '' : ''
+  if (!payloadSegment) {
+    return null
+  }
+
+  try {
+    const payload = decodeBase64UrlSegment(payloadSegment)
+    return payload ? JSON.parse(payload) : null
+  } catch {
+    return null
+  }
+}
+
+function extractExternalEntryUrlFromToken(token) {
+  const payload = decodeJwtPayload(token)
+  return normalizeExternalEntryUrl(payload?.iss)
 }
 
 function createAuthorizedHeaders(token) {
@@ -283,6 +363,7 @@ export default {
   clearRefreshToken,
   setSession,
   clearSession,
+  getExternalEntryUrl,
   getUrlToken,
   clearUrlToken,
   exchangeToken,
