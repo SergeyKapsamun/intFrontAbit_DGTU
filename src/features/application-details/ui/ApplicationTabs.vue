@@ -216,6 +216,8 @@ function isValidDate(dateString: string) {
   background: #fff;
   border-radius: 8px;
   min-width: 0;
+  height: auto;
+  overflow: visible;
 }
 
 .app-card-title {
@@ -226,6 +228,11 @@ function isValidDate(dateString: string) {
 .app-card-text {
   color: #334155;
   word-break: break-word;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: initial;
+  display: block;
 }
 
 .p-2 {

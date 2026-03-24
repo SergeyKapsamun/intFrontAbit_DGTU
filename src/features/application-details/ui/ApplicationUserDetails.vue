@@ -6,7 +6,7 @@
 			:allow-column-resizing="true"
 			:allow-column-reordering="true"
 			:column-min-width="80"
-			:key-expr="'id'"
+			:key-expr="'rowKey'"
 			:show-borders="false"
 			:column-resizing-mode="'widget'"
 			:scrolling="{
@@ -153,18 +153,57 @@ function isCanceledGridError(error: any): boolean {
 	)
 }
 
+function getApplicantFilterValue() {
+	const rawId = typeof props.id === 'string' ? Number(props.id) : props.id
+	return Number.isFinite(rawId) ? rawId : props.id
+}
+
+function buildApplicantsSummaryFilter(gridFilter: any) {
+	const applicantFilter = ['id', '=', getApplicantFilterValue()]
+	const selectedYear = abitStore.getSelectedYear
+	let baseFilter: any = applicantFilter
+
+	if (gridFilter) {
+		baseFilter = [baseFilter, 'and', gridFilter]
+	}
+
+	if (selectedYear) {
+		const yearFilter = ['recruitmentYear', '=', parseInt(selectedYear, 10)]
+		baseFilter = [baseFilter, 'and', yearFilter]
+	}
+
+	return baseFilter
+}
+
+function buildApplicantsSummaryUrl(payload: Record<string, any>) {
+	const url = new URL(BASE_URL + endpoints.GET_ABIT)
+
+	Object.keys(payload).forEach(key => {
+		url.searchParams.append(key, payload[key])
+	})
+
+	url.searchParams.append('MoreThanOne', 'true')
+
+	return url
+}
+
+function mapApplicantRows(data: any) {
+	if (!Array.isArray(data)) {
+		return []
+	}
+
+	return data.map((row, index) => ({
+		...row,
+		rowKey: row.applicationCode ?? row.ApplicationCode ?? `${row.id ?? row.Id}_${index}`,
+		scoreSumFull: (row.scoreSum || 0) + (row.additionalScoreId || 0),
+	}))
+}
+
 function createCustomStore() {
 	return new CustomStore({
-		key: 'id',
+		key: 'rowKey',
 		load: (loadOptions: any) => {
-			const selectedYear = abitStore.getSelectedYear
-			let baseFilter = loadOptions.filter ? [...loadOptions.filter] : []
-
-			if (selectedYear) {
-				const yearFilter = ['recruitmentYear', '=', parseInt(selectedYear)]
-				baseFilter =
-					baseFilter.length > 0 ? [baseFilter, 'and', yearFilter] : yearFilter
-			}
+			const baseFilter = buildApplicantsSummaryFilter(loadOptions.filter)
 
 			const payload = {
 				requireTotalCount: true,
@@ -195,30 +234,22 @@ function createCustomStore() {
 				remoteSelect: true,
 				remoteGrouping: true,
 				expandLinqSumType: true,
-				primaryKey: ['id'],
-				defaultSort: 'id',
+				primaryKey: ['applicationCode'],
+				defaultSort: 'applicationCode',
 				stringToLower: true,
 				paginateViaPrimaryKey: true,
 				sortByPrimaryKey: true,
 				allowAsyncOverSync: true,
 			}
 
-			const url = new URL(BASE_URL + endpoints.GET_ABIT_USER_BY_ID(props.id))
-			Object.keys(payload).forEach(key => {
-				url.searchParams.append(key, payload[key])
-			})
+			const url = buildApplicantsSummaryUrl(payload)
 
 			return api
 				.post(url.toString(), {})
 				.then(data => {
 					if (!data) throw new Error('Network response was not ok')
 					return {
-						data: Array.isArray(data.data)
-							? data.data.map(row => ({
-									...row,
-									scoreSumFull: row.scoreSum + row.additionalScoreId,
-							  }))
-							: [],
+						data: mapApplicantRows(data.data),
 						totalCount: data.totalCount || 0,
 					}
 				})
@@ -251,13 +282,7 @@ async function fetchExportData() {
 	const filterValue = grid.getCombinedFilter(true)
 	const sortValue = grid.getDataSource().sort()
 	const groupValue = grid.getDataSource().group()
-	const selectedYear = abitStore.getSelectedYear
-	let baseFilter = filterValue ? [...filterValue] : []
-
-	if (selectedYear) {
-		const yearFilter = ['recruitmentYear', '=', parseInt(selectedYear)]
-		baseFilter = baseFilter.length > 0 ? [baseFilter, 'and', yearFilter] : yearFilter
-	}
+	const baseFilter = buildApplicantsSummaryFilter(filterValue)
 
 	const payload = {
 		requireTotalCount: false,
@@ -269,20 +294,25 @@ async function fetchExportData() {
 		filter: JSON.stringify(baseFilter),
 		totalSummary: '[]',
 		groupSummary: '[]',
+		select: JSON.stringify([]),
+		preSelect: JSON.stringify([]),
+		remoteSelect: true,
+		remoteGrouping: true,
+		expandLinqSumType: true,
+		primaryKey: ['applicationCode'],
+		defaultSort: 'applicationCode',
+		stringToLower: true,
+		paginateViaPrimaryKey: true,
+		sortByPrimaryKey: true,
+		allowAsyncOverSync: true,
 	}
 
-	const url = new URL(BASE_URL + endpoints.GET_ABIT_USER_BY_ID(props.id))
-	Object.keys(payload).forEach(key => {
-		url.searchParams.append(key, payload[key])
-	})
+	const url = buildApplicantsSummaryUrl(payload)
 
 	const data = await api.post(url.toString(), {})
 	if (!data) throw new Error('Network response was not ok')
 
-	return data.data.map(item => ({
-		...item,
-		scoreSumFull: item.scoreSum + item.additionalScoreId,
-	}))
+	return mapApplicantRows(data.data)
 }
 
 async function onExporting(e: any) {

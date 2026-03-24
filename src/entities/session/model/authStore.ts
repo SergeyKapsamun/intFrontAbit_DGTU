@@ -33,36 +33,25 @@ export const useAuthStore = defineStore('auth', {
     userFio: (state) => state.user?.fio || state.user?.fullName || state.user?.userName || '',
   },
   actions: {
-    async fetchCurrentUser() {
-      const response = await authApi.getCurrentUser()
-      if (response?.state !== 1) {
-        return {
-          ok: false,
-          error: response?.msg || 'Не удалось получить данные пользователя',
-        }
-      }
-
-      this.user = response.data?.user || null
-
-      return {
-        ok: !!this.user,
-        error: this.user ? '' : 'Пользователь не найден',
-      }
-    },
-    async restoreSession() {
+    restoreSession(sessionData = null) {
       if (!authApi.getToken()) {
         this.user = null
         return { ok: false, error: 'Токен доступа не найден' }
       }
 
       try {
-        const result = await this.fetchCurrentUser()
-        if (!result.ok) {
+        const user = authApi.buildUserFromSessionData(sessionData)
+        if (!user) {
           this.user = null
           authApi.clearSession()
+          return {
+            ok: false,
+            error: 'Не удалось восстановить данные пользователя',
+          }
         }
 
-        return result
+        this.user = user
+        return { ok: true, error: '' }
       } catch (error) {
         this.user = null
         authApi.clearSession()
@@ -85,6 +74,7 @@ export const useAuthStore = defineStore('auth', {
         const urlToken = authApi.getUrlToken()
 
         if (urlToken) {
+          authApi.logUrlTokenDebug(urlToken)
           authApi.clearSession()
 
           const result = await authApi.exchangeToken(urlToken)
@@ -98,10 +88,20 @@ export const useAuthStore = defineStore('auth', {
           authApi.setSession({
             accessToken: result.token,
             refreshToken: result.refreshToken,
+            sourceToken: urlToken,
           })
+
+          const restoredSession = this.restoreSession(result.sessionData)
+          if (!restoredSession.ok) {
+            this.authError =
+              restoredSession.error || 'Не удалось инициализировать сессию пользователя'
+            return false
+          }
+
+          return true
         }
 
-        const restoredSession = await this.restoreSession()
+        const restoredSession = this.restoreSession()
         if (!restoredSession.ok) {
           this.authError =
             restoredSession.error || 'Не удалось инициализировать сессию пользователя'
@@ -142,9 +142,10 @@ export const useAuthStore = defineStore('auth', {
         authApi.setSession({
           accessToken: result.token,
           refreshToken: result.refreshToken,
+          sourceToken: jwtToken,
         })
 
-        const restoredSession = await this.restoreSession()
+        const restoredSession = this.restoreSession(result.sessionData)
         if (!restoredSession.ok) {
           this.authError = restoredSession.error || 'Не удалось получить данные пользователя'
           return { ok: false, error: this.authError }

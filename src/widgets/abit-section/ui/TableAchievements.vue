@@ -103,8 +103,8 @@ const dbStore = useDbStore();
 
 const dataGrid = ref(null);
 const columnConfig = achievementsColumnConfig;
-const achievementsData = ref(null);
 const getSelectedName = computed(() => abitStore.getSelectedName);
+const pendingAchievementLoads = new Map<string, Promise<{ data: any[]; totalCount: number }>>();
 
 function isCanceledGridError(error: any): boolean {
   return /(cancel(ed|led)?|abort(ed)?|ERR_CANCELED)/i.test(
@@ -177,35 +177,50 @@ function createCustomStore() {
         url.searchParams.append(key, payload[key]);
       });
 
-      return api
-        .post(url.toString(), {})
-        .then((data) => {
-          if (!data) throw new Error("Network response was not ok");
-          return {
-            data: data.data,
-            totalCount: data.totalCount,
-          };
-        })
-        .catch((err) => {
-          console.error("DataGrid load error:", err);
-          throw err;
-        });
+      return loadAchievementGridData(url.toString());
     },
   });
 }
 
-async function refreshTableData() {
-  achievementsData.value = createCustomStore();
+const achievementsData = createCustomStore();
 
+async function refreshTableData() {
   if (dataGrid.value?.instance) {
     try {
-      await dataGrid.value.instance.refresh();
+      await dataGrid.value.instance.getDataSource().reload();
     } catch (error) {
       if (!isCanceledGridError(error)) {
         console.error("Error refreshing achievements grid:", error);
       }
     }
   }
+}
+
+function loadAchievementGridData(requestUrl: string) {
+  const existingRequest = pendingAchievementLoads.get(requestUrl);
+  if (existingRequest) {
+    return existingRequest;
+  }
+
+  const request = api
+    .post(requestUrl, {})
+    .then((data) => {
+      if (!data) throw new Error("Network response was not ok");
+      return {
+        data: Array.isArray(data.data) ? data.data : [],
+        totalCount: data.totalCount || 0,
+      };
+    })
+    .catch((err) => {
+      console.error("DataGrid load error:", err);
+      throw err;
+    })
+    .finally(() => {
+      pendingAchievementLoads.delete(requestUrl);
+    });
+
+  pendingAchievementLoads.set(requestUrl, request);
+  return request;
 }
 
 function customizeExcelSheet() {}
@@ -251,7 +266,5 @@ watch(
   },
   { immediate: true },
 );
-
-achievementsData.value = createCustomStore();
 </script>
 <style scoped></style>

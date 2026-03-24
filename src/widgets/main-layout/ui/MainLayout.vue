@@ -18,6 +18,16 @@
           <button
             v-if="!isMobileView"
             type="button"
+            class="header-link-btn"
+            title="Инструкция"
+            @click="openInstruction"
+          >
+            <i class="fas fa-file-pdf" aria-hidden="true"></i>
+            <span>Инструкция</span>
+          </button>
+          <button
+            v-if="!isMobileView"
+            type="button"
             class="icon-btn topbar-icon-btn"
             :title="isFullscreen ? 'Свернуть экран' : 'Полный экран'"
             @click="toggleFullscreen"
@@ -36,17 +46,6 @@
             @click="openThemeSelector"
           >
             <i class="fas fa-brush" aria-hidden="true"></i>
-          </button>
-
-          <button
-            v-if="!isMobileView"
-            type="button"
-            class="header-link-btn"
-            title="Инструкция"
-            @click="openInstruction"
-          >
-            <i class="fas fa-file-pdf" aria-hidden="true"></i>
-            <span>Инструкция</span>
           </button>
 
           <v-tooltip
@@ -114,7 +113,10 @@
               </v-list-item>
               <v-list-item @click="openInstruction" class="user-menu-item">
                 <template #prepend>
-                  <i class="fas fa-file-pdf user-menu-fa" aria-hidden="true"></i>
+                  <i
+                    class="fas fa-file-pdf user-menu-fa"
+                    aria-hidden="true"
+                  ></i>
                 </template>
                 <v-list-item-title>Инструкция</v-list-item-title>
               </v-list-item>
@@ -180,8 +182,6 @@
       aria-label="Мобильная навигация"
     >
       <div class="mobile-bottom-nav-container">
-        
-
         <button class="mobile-bottom-nav-item" type="button" @click="onLogout">
           <span class="mobile-bottom-nav-icon-wrapper">
             <i
@@ -373,9 +373,7 @@ async function loadUserCardData() {
       };
       return;
     }
-  } catch {
-    
-  }
+  } catch {}
 
   userCardData.value = {
     id: userCardUserId.value,
@@ -390,6 +388,7 @@ async function loadUserCardData() {
 function goToAbit() {
   mobileUserMenuOpen.value = false;
   const externalEntryUrl = authApi.getExternalEntryUrl();
+
   if (externalEntryUrl) {
     window.location.assign(externalEntryUrl);
     return;
@@ -423,22 +422,23 @@ async function toggleFullscreen() {
       await document.exitFullscreen();
     }
   } catch {
-    
   } finally {
     syncFullscreenState();
   }
 }
 
 function onLogout() {
-  const externalEntryUrl = authApi.getExternalEntryUrl();
-  authStore.logout();
-  userCardData.value = null;
-  mobileUserMenuOpen.value = false;
   themeDialogOpen.value = false;
+  mobileUserMenuOpen.value = false;
+  const logoutEntryUrl = authApi.getLogoutEntryUrl();
+  // console.log("[auth] logout iss", logoutEntryUrl);
 
-  if (externalEntryUrl) {
-    window.location.assign(externalEntryUrl);
+  if (logoutEntryUrl) {
+    window.location.assign(logoutEntryUrl);
+    return;
   }
+
+  goToAbit();
 }
 </script>
 
@@ -511,9 +511,6 @@ function onLogout() {
   color: inherit;
   padding: 0;
   cursor: pointer;
-}
-
-.topbar-brand:hover .crumbs {
 }
 
 .topbar-brand-logo {

@@ -202,9 +202,9 @@ const dataGrid = ref(null)
 const pageSize = 20
 const entityList = ref([])
 const selectedEntity = ref(null)
-const tableData = ref(null)
 const tableColumns = disciplineConfig
 const getSelectedYear = computed(() => abitStore.getSelectedYear)
+const pendingGridLoads = new Map<string, Promise<{ data: any[]; totalCount: number }>>()
 
 function getDisciplineEntityValue(item: any, keys: string[]) {
 	for (const key of keys) {
@@ -243,7 +243,7 @@ async function loadEntityList() {
 		if (!year) {
 			entityList.value = []
 			selectedEntity.value = null
-			tableData.value = null
+			refreshTableData()
 			return
 		}
 
@@ -292,6 +292,13 @@ async function loadEntityList() {
 }
 
 function selectEntity(entity: any) {
+	if (
+		selectedEntity.value?.id === entity?.id &&
+		selectedEntity.value?.examTypeCode === entity?.examTypeCode
+	) {
+		return
+	}
+
 	selectedEntity.value = entity
 }
 
@@ -299,7 +306,7 @@ function createCustomStore() {
 	return new CustomStore({
 		key: 'id',
 		load: (loadOptions: any) => {
-			if (!abitStore.getSelectedYear) {
+			if (!abitStore.getSelectedYear || !selectedEntity.value) {
 				return Promise.resolve({
 					data: [],
 					totalCount: 0,
@@ -355,44 +362,62 @@ function createCustomStore() {
 			const url = new URL(BASE_URL + endpoint)
 			appendSearchParams(url, payload)
 
-			return api
-				.post(url.toString(), {})
-				.then(data => {
-					if (!data) throw new Error('Network response was not ok')
-					return {
-						data: Array.isArray(data.data)
-							? data.data.map((row, i) => ({
-									...row,
-									id: i,
-									scoreSumFull:
-										(row.scoreSum || 0) + (row.additionalScoreId || 0),
-							  }))
-							: [],
-						totalCount: data.totalCount || 0,
-					}
-				})
-				.catch(err => {
-					console.error('DataGrid load error:', err)
-					if (err.response && err.response.status === 400) {
-						return {
-							data: [],
-							totalCount: 0,
-						}
-					}
-					throw err
-				})
+			return loadGridData(url.toString())
 		},
 	})
 }
 
+const tableData = createCustomStore()
+
 function refreshTableData() {
-	if (selectedEntity.value) {
-		tableData.value = createCustomStore()
+	const gridInstance = dataGrid.value?.instance
+	if (gridInstance?.getDataSource) {
+		void gridInstance.getDataSource().reload()
 	}
 }
 
 function refreshEntityList() {
 	void loadEntityList()
+}
+
+function loadGridData(requestUrl: string) {
+	const existingRequest = pendingGridLoads.get(requestUrl)
+	if (existingRequest) {
+		return existingRequest
+	}
+
+	const request = api
+		.post(requestUrl, {})
+		.then(data => {
+			if (!data) throw new Error('Network response was not ok')
+			return {
+				data: Array.isArray(data.data)
+					? data.data.map((row, i) => ({
+							...row,
+							id: i,
+							scoreSumFull:
+								(row.scoreSum || 0) + (row.additionalScoreId || 0),
+					  }))
+					: [],
+				totalCount: data.totalCount || 0,
+			}
+		})
+		.catch(err => {
+			console.error('DataGrid load error:', err)
+			if (err.response && err.response.status === 400) {
+				return {
+					data: [],
+					totalCount: 0,
+				}
+			}
+			throw err
+		})
+		.finally(() => {
+			pendingGridLoads.delete(requestUrl)
+		})
+
+	pendingGridLoads.set(requestUrl, request)
+	return request
 }
 
 async function fetchExportData() {
