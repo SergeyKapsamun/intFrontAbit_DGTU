@@ -1,6 +1,7 @@
 import api from '@/shared/api/http'
+import { getApiOrigin } from '@/shared/config/runtime'
 
-const API_ROOT = 'https://ddt.donstu.ru'
+const API_ROOT = getApiOrigin()
 const PROGRAM_VERSIONS_ENDPOINT = '/api/Modules/CommonControllers/ProgramVersions'
 
 export interface ProgramVersionDto {

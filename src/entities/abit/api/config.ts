@@ -3,8 +3,9 @@ import type {
   ApiEndpointRequest,
   ApiEndpointResponse,
 } from '@/shared/api/contracts/frontend-api'
+import { getApiBaseUrl } from '@/shared/config/runtime'
 
-export const BASE_URL = 'https://ddt.donstu.ru/api'
+export const BASE_URL = getApiBaseUrl()
 
 export const endpoints = {
 	GET_ABIT: `/Applicants/summary`,

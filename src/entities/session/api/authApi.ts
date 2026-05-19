@@ -1,13 +1,14 @@
 import axios from "axios";
 import { configureAuthSession } from "@/shared/api/authSession";
+import { getApiOrigin } from "@/shared/config/runtime";
 
 const ACCESS_TOKEN_KEY = "authToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
 const EXTERNAL_ENTRY_URL_KEY = "externalEntryUrl";
 const LEGACY_TOKEN_KEY = "abitAuthToken";
 const URL_TOKEN_KEY = "token";
-const AUTH_API_ROOT = "https://ddt.donstu.ru";
-const APP_API_ROOT = "https://ddt.donstu.ru";
+const AUTH_API_ROOT = getApiOrigin();
+const APP_API_ROOT = getApiOrigin();
 const CLAIM_NAME = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name";
 const CLAIM_SURNAME =
   "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname";

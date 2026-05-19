@@ -208,6 +208,7 @@ import { RouterView, useRoute, useRouter } from "vue-router";
 import { useTheme } from "vuetify";
 import authApi from "@/entities/session/api/authApi";
 import { useAuthStore } from "@/entities/session/model/authStore";
+import { getApiOrigin } from "@/shared/config/runtime";
 import {
   applyStoredTheme,
   applyThemeById,
@@ -231,6 +232,7 @@ const isFullscreen = ref(false);
 const currentYear = new Date().getFullYear();
 const nextYear = currentYear + 1;
 const appVersion = "1.1.8";
+const apiOrigin = getApiOrigin();
 const instructionUrl = new URL(
   `${import.meta.env.BASE_URL}upload/instruction.pdf`,
   window.location.origin,
@@ -292,7 +294,7 @@ const authUserAvatar = computed(() => {
 
   if (!raw) return "";
   if (/^https?:\/\//i.test(raw) || raw.startsWith("data:")) return raw;
-  return `https://ddt.donstu.ru${raw.startsWith("/") ? raw : `/${raw}`}`;
+  return `${apiOrigin}${raw.startsWith("/") ? raw : `/${raw}`}`;
 });
 
 watch(
@@ -342,7 +344,7 @@ function normalizePhotoPath(raw: string) {
   }
 
   if (/^https?:\/\//i.test(raw) || raw.startsWith("data:")) return raw;
-  return `https://ddt.donstu.ru${raw.startsWith("/") ? raw : `/${raw}`}`;
+  return `${apiOrigin}${raw.startsWith("/") ? raw : `/${raw}`}`;
 }
 
 async function loadUserCardData() {

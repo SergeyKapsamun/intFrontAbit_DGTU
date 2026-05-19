@@ -1,6 +1,7 @@
 import api from '@/shared/api/http'
+import { getApiBaseUrl } from '@/shared/config/runtime'
 
-const BASE_URL = 'https://ddt.donstu.ru/api'
+const BASE_URL = getApiBaseUrl()
 
 const dbEndpoints = {
   GET_DBS: '/DBMetadata/databases',
