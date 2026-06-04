@@ -341,12 +341,16 @@ async function exchangeToken(jwtToken) {
   });
 
   const payload = response?.data;
+  const externalEntryUrl = normalizeExternalEntryUrl(
+    payload?.data?.link || payload?.data?.externalEntryUrl || "",
+  );
 
   if (!payload || payload.state !== 1) {
     return {
       token: null,
       state: false,
       error: payload?.msg || "Ошибка авторизации",
+      externalEntryUrl,
     };
   }
 
@@ -354,6 +358,7 @@ async function exchangeToken(jwtToken) {
     token: payload?.data?.accessToken || null,
     refreshToken: payload?.data?.refreshToken || null,
     sessionData: payload?.data || null,
+    externalEntryUrl,
     user: buildUserFromSessionData(payload?.data),
     state: true,
     error: null,

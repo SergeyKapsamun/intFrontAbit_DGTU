@@ -5,6 +5,19 @@ import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
 export default defineConfig(({ command }) => ({
   plugins: [
+    {
+      name: 'runtime-config-no-cache',
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          if (req.url?.startsWith('/config.js')) {
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+            res.setHeader('Pragma', 'no-cache')
+            res.setHeader('Expires', '0')
+          }
+          next()
+        })
+      },
+    },
     vue({
       template: { transformAssetUrls },
     }),

@@ -21,12 +21,23 @@ function extractErrorMessage(error, fallbackMessage) {
   return fallbackMessage
 }
 
+function normalizeAuthErrorMessage(error) {
+  const message = typeof error === 'string' ? error.trim() : ''
+
+  if (message.toLowerCase() === 'permission denied') {
+    return 'У вас недостаточно прав, обратитесь к администратору'
+  }
+
+  return message
+}
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
     loading: false,
     initialized: false,
     authError: '',
+    authReturnUrl: '',
   }),
   getters: {
     isAuthenticated: (state) => !!authApi.getToken() && !!state.user,
@@ -69,6 +80,7 @@ export const useAuthStore = defineStore('auth', {
 
       this.loading = true
       this.authError = ''
+      this.authReturnUrl = ''
 
       try {
         const urlToken = authApi.getUrlToken()
@@ -81,13 +93,16 @@ export const useAuthStore = defineStore('auth', {
           if (!result.state || !result.token) {
             this.user = null
             authApi.clearSession()
-            this.authError = result.error || 'Не удалось выполнить вход по ссылке'
+            this.authReturnUrl = result.externalEntryUrl || ''
+            this.authError =
+              normalizeAuthErrorMessage(result.error) || 'Не удалось выполнить вход по ссылке'
             return false
           }
 
           authApi.setSession({
             accessToken: result.token,
             refreshToken: result.refreshToken,
+            externalEntryUrl: result.externalEntryUrl,
             sourceToken: urlToken,
           })
 
@@ -113,6 +128,7 @@ export const useAuthStore = defineStore('auth', {
         this.user = null
         authApi.clearSession()
         this.authError = extractErrorMessage(error, 'Ошибка сети при авторизации')
+        this.authReturnUrl = ''
         return false
       } finally {
         authApi.clearUrlToken()
@@ -123,6 +139,7 @@ export const useAuthStore = defineStore('auth', {
     async login(credentials) {
       this.loading = true
       this.authError = ''
+      this.authReturnUrl = ''
 
       try {
         const jwtToken = credentials?.jwtToken || credentials?.token
@@ -135,13 +152,15 @@ export const useAuthStore = defineStore('auth', {
         if (!result.state || !result.token) {
           this.user = null
           authApi.clearSession()
-          this.authError = result.error || 'Ошибка авторизации'
+          this.authReturnUrl = result.externalEntryUrl || ''
+          this.authError = normalizeAuthErrorMessage(result.error) || 'Ошибка авторизации'
           return { ok: false, error: this.authError }
         }
 
         authApi.setSession({
           accessToken: result.token,
           refreshToken: result.refreshToken,
+          externalEntryUrl: result.externalEntryUrl,
           sourceToken: jwtToken,
         })
 
@@ -156,6 +175,7 @@ export const useAuthStore = defineStore('auth', {
         this.user = null
         authApi.clearSession()
         this.authError = extractErrorMessage(error, 'Ошибка сети при авторизации')
+        this.authReturnUrl = ''
         return { ok: false, error: this.authError }
       } finally {
         this.loading = false
@@ -165,6 +185,7 @@ export const useAuthStore = defineStore('auth', {
       authApi.clearSession()
       this.user = null
       this.authError = message
+      this.authReturnUrl = ''
       this.initialized = true
     },
   },

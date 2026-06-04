@@ -4,14 +4,28 @@ import { RouterView } from 'vue-router'
 import { useAuthStore } from '@/entities/session/model/authStore'
 
 const authStore = useAuthStore()
+const PERMISSION_DENIED_MESSAGE = 'У вас недостаточно прав, обратитесь к администратору'
 
 const canRenderApp = computed(() => authStore.initialized && authStore.isAuthenticated)
-const authStateTitle = computed(() =>
-  authStore.loading ? 'Загрузка раздела' : 'Не удалось загрузить данные',
-)
+const isPermissionDenied = computed(() => authStore.authError === PERMISSION_DENIED_MESSAGE)
+const authStateTitle = computed(() => {
+  if (authStore.loading) {
+    return 'Загрузка раздела'
+  }
+
+  if (isPermissionDenied.value) {
+    return PERMISSION_DENIED_MESSAGE
+  }
+
+  return 'Не удалось загрузить данные'
+})
 const authStateText = computed(() => {
   if (authStore.loading) {
     return 'Подождите, раздел открывается.'
+  }
+
+  if (isPermissionDenied.value) {
+    return ''
   }
 
   const authError = authStore.authError.toLowerCase()
@@ -31,8 +45,17 @@ const authStateText = computed(() => {
 
   return authStore.authError
 })
+const hasAuthReturnUrl = computed(() => Boolean(authStore.authReturnUrl))
+const authStateButtonText = computed(() =>
+  hasAuthReturnUrl.value ? 'Вернуться' : 'Обновить страницу',
+)
 
-function reloadPage() {
+function handleAuthStateAction() {
+  if (authStore.authReturnUrl) {
+    window.location.assign(authStore.authReturnUrl)
+    return
+  }
+
   window.location.reload()
 }
 </script>
@@ -44,10 +67,10 @@ function reloadPage() {
     <section class="auth-state-card">
       <div v-if="authStore.loading" class="auth-state-spinner" aria-hidden="true"></div>
       <h1 class="auth-state-title">{{ authStateTitle }}</h1>
-      <p class="auth-state-text">{{ authStateText }}</p>
+      <p v-if="authStateText" class="auth-state-text">{{ authStateText }}</p>
 
-      <button v-if="!authStore.loading" type="button" class="auth-state-button" @click="reloadPage">
-        Обновить страницу
+      <button v-if="!authStore.loading" type="button" class="auth-state-button" @click="handleAuthStateAction">
+        {{ authStateButtonText }}
       </button>
     </section>
   </main>
