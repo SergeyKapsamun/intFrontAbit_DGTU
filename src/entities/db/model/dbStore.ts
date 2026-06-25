@@ -1,12 +1,12 @@
-import { defineStore } from 'pinia'
-import { getDBs, getYears } from '@/entities/db/api/db-api'
+import { defineStore } from "pinia";
+import { getDBs, getYears } from "@/entities/db/api/db-api";
 
-export const useDbStore = defineStore('dbStore', {
+export const useDbStore = defineStore("dbStore", {
   state: () => ({
-    selectedDB: 'АбитуриентыДГТУ',
+    selectedDB: "Абитуриенты",
     DBs: [],
-    ip: '',
-    role: '',
+    ip: "",
+    role: "",
     years: [],
   }),
   getters: {
@@ -17,26 +17,26 @@ export const useDbStore = defineStore('dbStore', {
   },
   actions: {
     setSelectedRole(role) {
-      this.role = role
+      this.role = role;
     },
     setSelectedDb(db) {
-      this.selectedDB = db
+      this.selectedDB = db;
     },
     setIp(ip) {
-      this.ip = ip || ''
+      this.ip = ip || "";
     },
     setYears(years) {
-      this.years = Array.isArray(years) ? years : []
+      this.years = Array.isArray(years) ? years : [];
     },
     async selectRole(role) {
-      this.setSelectedRole(role)
-      const dbMeta = await getDBs(role)
-      this.DBs = Array.isArray(dbMeta?.databases) ? dbMeta.databases : []
-      this.setIp(dbMeta?.ip || '')
+      this.setSelectedRole(role);
+      const dbMeta = await getDBs(role);
+      this.DBs = Array.isArray(dbMeta?.databases) ? dbMeta.databases : [];
+      this.setIp(dbMeta?.ip || "");
 
-      const years = await getYears(this.selectedDB, 1)
-      this.setYears(years)
-      return { dbMeta, years }
+      const years = await getYears(this.selectedDB, 1);
+      this.setYears(years);
+      return { dbMeta, years };
     },
   },
-})
+});

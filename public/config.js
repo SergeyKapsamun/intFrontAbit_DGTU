@@ -1,3 +1,3 @@
 window.__APP_CONFIG__ = {
-  apiOrigin: "http://integratornet7.sssu.ru:5000/",
+  apiOrigin: "http://127.0.0.1:8588/",
 };

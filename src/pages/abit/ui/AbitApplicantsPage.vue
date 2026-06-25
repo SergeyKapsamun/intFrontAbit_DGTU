@@ -3,7 +3,7 @@
     <section class="shell">
       <header class="header">
         <div>
-          <h1>Абитуриенты ДГТУ</h1>
+          <h1>Абитуриенты</h1>
         </div>
         <div v-if="dbStore.getIp" class="chip">IP: {{ dbStore.getIp }}</div>
       </header>

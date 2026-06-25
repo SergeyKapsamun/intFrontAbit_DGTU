@@ -31,10 +31,10 @@ export const chartHelpersApiService = {
       }
 
       console.error('Unexpected API response structure:', response)
-      return ['ДГТУ', 'Авиаколледж ДГТУ', 'Маг', 'ФТТ']
+      return ['Университет', 'Авиаколледж', 'Маг', 'ФТТ']
     } catch (error) {
       console.error('Error fetching branch data:', error)
-      return ['ДГТУ', 'Авиаколледж ДГТУ', 'Маг', 'ФТТ']
+      return ['Университет', 'Авиаколледж', 'Маг', 'ФТТ']
     }
   },
 }

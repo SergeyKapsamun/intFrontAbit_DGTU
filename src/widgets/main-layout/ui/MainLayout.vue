@@ -10,7 +10,7 @@
             @click="goToAbit"
           >
             <img src="/img/icons/logo.png" alt="" class="topbar-brand-logo" />
-            <span class="crumbs">ДеканатДГТУ</span>
+            <span class="crumbs">Деканат</span>
           </button>
         </div>
 
@@ -160,9 +160,9 @@
         <span class="foot-span">Интегратор ММИС</span>
         <span class="foot-span">© {{ currentYear }}</span>
         <div class="footer-spacer"></div>
-        <span class="foot-span db-foot-span" title="ДеканатДГТУ">
+        <span class="foot-span db-foot-span" title="Деканат">
           <i class="fas fa-database foot-icon" aria-hidden="true"></i>
-          <b>ДеканатДГТУ</b>
+          <b>Деканат</b>
         </span>
         <span
           class="foot-span version-foot-span"
