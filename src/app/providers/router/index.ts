@@ -1,7 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import MainLayout from '@/widgets/main-layout'
 import AbitApplicantsPage from '@/pages/abit'
-import VersionPage from '@/pages/version'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -19,12 +18,6 @@ const router = createRouter({
           path: 'abit',
           name: 'abit',
           component: AbitApplicantsPage,
-          meta: { requiresAuth: true },
-        },
-        {
-          path: 'VersionPage',
-          name: 'VersionPage',
-          component: VersionPage,
           meta: { requiresAuth: true },
         },
       ],

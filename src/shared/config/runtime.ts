@@ -1,5 +1,3 @@
-const DEFAULT_API_ORIGIN = 'https://ddt.donstu.ru'
-
 type RuntimeConfig = {
   apiOrigin?: string
 }
@@ -12,7 +10,7 @@ declare global {
 
 function normalizeOrigin(raw: string | undefined) {
   const value = (raw || '').trim()
-  if (!value) return DEFAULT_API_ORIGIN
+  if (!value) return ''
 
   if (/^https?:\/\//i.test(value)) {
     return value.replace(/\/+$/, '')
@@ -30,5 +28,6 @@ export function getApiOrigin() {
 }
 
 export function getApiBaseUrl() {
-  return `${getApiOrigin()}/api`
+  const origin = getApiOrigin()
+  return origin ? `${origin}/api` : '/api'
 }

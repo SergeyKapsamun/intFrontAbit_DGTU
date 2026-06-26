@@ -1,35 +1,7 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
 import authApi from '@/entities/session/api/authApi'
 
-function extractErrorMessage(error, fallbackMessage) {
-  if (axios.isAxiosError(error)) {
-    const responseMessage =
-      error.response?.data?.msg ||
-      error.response?.data?.message ||
-      error.response?.data?.error
-
-    if (typeof responseMessage === 'string' && responseMessage.trim()) {
-      return responseMessage
-    }
-  }
-
-  if (error instanceof Error && error.message) {
-    return error.message
-  }
-
-  return fallbackMessage
-}
-
-function normalizeAuthErrorMessage(error) {
-  const message = typeof error === 'string' ? error.trim() : ''
-
-  if (message.toLowerCase() === 'permission denied') {
-    return 'У вас недостаточно прав, обратитесь к администратору'
-  }
-
-  return message
-}
+const AUTH_ACCESS_DENIED_MESSAGE = 'У вас недостаточно прав, обратитесь к администратору'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -47,7 +19,7 @@ export const useAuthStore = defineStore('auth', {
     restoreSession(sessionData = null) {
       if (!authApi.getToken()) {
         this.user = null
-        return { ok: false, error: 'Токен доступа не найден' }
+        return { ok: false, error: AUTH_ACCESS_DENIED_MESSAGE }
       }
 
       try {
@@ -57,7 +29,7 @@ export const useAuthStore = defineStore('auth', {
           authApi.clearSession()
           return {
             ok: false,
-            error: 'Не удалось восстановить данные пользователя',
+            error: AUTH_ACCESS_DENIED_MESSAGE,
           }
         }
 
@@ -69,7 +41,7 @@ export const useAuthStore = defineStore('auth', {
 
         return {
           ok: false,
-          error: extractErrorMessage(error, 'Не удалось восстановить сессию'),
+          error: AUTH_ACCESS_DENIED_MESSAGE,
         }
       }
     },
@@ -94,8 +66,7 @@ export const useAuthStore = defineStore('auth', {
             this.user = null
             authApi.clearSession()
             this.authReturnUrl = result.externalEntryUrl || ''
-            this.authError =
-              normalizeAuthErrorMessage(result.error) || 'Не удалось выполнить вход по ссылке'
+            this.authError = AUTH_ACCESS_DENIED_MESSAGE
             return false
           }
 
@@ -108,8 +79,7 @@ export const useAuthStore = defineStore('auth', {
 
           const restoredSession = this.restoreSession(result.sessionData)
           if (!restoredSession.ok) {
-            this.authError =
-              restoredSession.error || 'Не удалось инициализировать сессию пользователя'
+            this.authError = AUTH_ACCESS_DENIED_MESSAGE
             return false
           }
 
@@ -118,8 +88,7 @@ export const useAuthStore = defineStore('auth', {
 
         const restoredSession = this.restoreSession()
         if (!restoredSession.ok) {
-          this.authError =
-            restoredSession.error || 'Не удалось инициализировать сессию пользователя'
+          this.authError = AUTH_ACCESS_DENIED_MESSAGE
           return false
         }
 
@@ -127,7 +96,7 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         this.user = null
         authApi.clearSession()
-        this.authError = extractErrorMessage(error, 'Ошибка сети при авторизации')
+        this.authError = AUTH_ACCESS_DENIED_MESSAGE
         this.authReturnUrl = ''
         return false
       } finally {
@@ -144,7 +113,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         const jwtToken = credentials?.jwtToken || credentials?.token
         if (!jwtToken) {
-          this.authError = 'Токен авторизации не передан'
+          this.authError = AUTH_ACCESS_DENIED_MESSAGE
           return { ok: false, error: this.authError }
         }
 
@@ -153,7 +122,7 @@ export const useAuthStore = defineStore('auth', {
           this.user = null
           authApi.clearSession()
           this.authReturnUrl = result.externalEntryUrl || ''
-          this.authError = normalizeAuthErrorMessage(result.error) || 'Ошибка авторизации'
+          this.authError = AUTH_ACCESS_DENIED_MESSAGE
           return { ok: false, error: this.authError }
         }
 
@@ -166,7 +135,7 @@ export const useAuthStore = defineStore('auth', {
 
         const restoredSession = this.restoreSession(result.sessionData)
         if (!restoredSession.ok) {
-          this.authError = restoredSession.error || 'Не удалось получить данные пользователя'
+          this.authError = AUTH_ACCESS_DENIED_MESSAGE
           return { ok: false, error: this.authError }
         }
 
@@ -174,7 +143,7 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         this.user = null
         authApi.clearSession()
-        this.authError = extractErrorMessage(error, 'Ошибка сети при авторизации')
+        this.authError = AUTH_ACCESS_DENIED_MESSAGE
         this.authReturnUrl = ''
         return { ok: false, error: this.authError }
       } finally {

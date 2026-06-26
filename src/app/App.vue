@@ -7,43 +7,19 @@ const authStore = useAuthStore()
 const PERMISSION_DENIED_MESSAGE = 'У вас недостаточно прав, обратитесь к администратору'
 
 const canRenderApp = computed(() => authStore.initialized && authStore.isAuthenticated)
-const isPermissionDenied = computed(() => authStore.authError === PERMISSION_DENIED_MESSAGE)
 const authStateTitle = computed(() => {
   if (authStore.loading) {
     return 'Загрузка раздела'
   }
 
-  if (isPermissionDenied.value) {
-    return PERMISSION_DENIED_MESSAGE
-  }
-
-  return 'Не удалось загрузить данные'
+  return 'Не удалось получить токен'
 })
 const authStateText = computed(() => {
   if (authStore.loading) {
     return 'Подождите, раздел открывается.'
   }
 
-  if (isPermissionDenied.value) {
-    return ''
-  }
-
-  const authError = authStore.authError.toLowerCase()
-
-  if (!authError) {
-    return 'Попробуйте обновить страницу. Если проблема повторится, откройте раздел заново.'
-  }
-
-  if (
-    authError.includes('сеанс заверш') ||
-    authError.includes('авторизац') ||
-    authError.includes('токен') ||
-    authError.includes('сесси')
-  ) {
-    return 'Обновите страницу. Если проблема повторится, откройте раздел заново.'
-  }
-
-  return authStore.authError
+  return PERMISSION_DENIED_MESSAGE
 })
 const hasAuthReturnUrl = computed(() => Boolean(authStore.authReturnUrl))
 const authStateButtonText = computed(() =>

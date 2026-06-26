@@ -164,14 +164,6 @@
           <i class="fas fa-database foot-icon" aria-hidden="true"></i>
           <b>Деканат</b>
         </span>
-        <span
-          class="foot-span version-foot-span"
-          title="Журнал версий"
-          @click="openVersionJournal"
-        >
-          <i class="fas fa-laptop-code foot-icon" aria-hidden="true"></i>
-          <b>{{ appVersion }}</b>
-        </span>
       </footer>
     </div>
 
@@ -231,7 +223,6 @@ const isMobileView = ref(false);
 const isFullscreen = ref(false);
 const currentYear = new Date().getFullYear();
 const nextYear = currentYear + 1;
-const appVersion = "1.1.8";
 const apiOrigin = getApiOrigin();
 const instructionUrl = new URL(
   `${import.meta.env.BASE_URL}upload/instruction.pdf`,
@@ -406,10 +397,6 @@ function openThemeSelector() {
 function openInstruction() {
   mobileUserMenuOpen.value = false;
   window.open(instructionUrl, "_blank", "noopener,noreferrer");
-}
-
-function openVersionJournal() {
-  router.push("/VersionPage").catch(() => {});
 }
 
 function onSelectTheme(themeId: number) {
@@ -809,14 +796,6 @@ function onLogout() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.version-foot-span {
-  cursor: pointer;
-}
-
-.version-foot-span:hover {
-  opacity: 0.92;
 }
 
 .foot-icon {
