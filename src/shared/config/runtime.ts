@@ -1,5 +1,6 @@
 type RuntimeConfig = {
   apiOrigin?: string
+  defaultDatabase?: string
 }
 
 declare global {
@@ -30,4 +31,8 @@ export function getApiOrigin() {
 export function getApiBaseUrl() {
   const origin = getApiOrigin()
   return origin ? `${origin}/api` : '/api'
+}
+
+export function getDefaultDatabase() {
+  return (window.__APP_CONFIG__?.defaultDatabase || '').trim()
 }

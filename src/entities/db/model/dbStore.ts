@@ -1,9 +1,10 @@
 import { defineStore } from "pinia";
 import { getDBs, getYears } from "@/entities/db/api/db-api";
+import { getDefaultDatabase } from "@/shared/config/runtime";
 
 export const useDbStore = defineStore("dbStore", {
   state: () => ({
-    selectedDB: "Абитуриенты",
+    selectedDB: getDefaultDatabase(),
     DBs: [],
     ip: "",
     role: "",
